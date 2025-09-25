@@ -15,15 +15,30 @@ datasource db {
 }
 
 model User {
-    id          Int          @id @default(autoincrement())
-    email       String       @unique
-    name        String
-    password    String
-    createdAt   DateTime     @default(now()) @map("created_at")
-    updatedAt   DateTime     @updatedAt @map("updated_at")
-    whiteboards Whiteboard[]
+    id            Int             @id @default(autoincrement())
+    email         String          @unique
+    name          String
+    password      String
+    createdAt     DateTime        @default(now()) @map("created_at")
+    updatedAt     DateTime        @updatedAt @map("updated_at")
+    whiteboards   Whiteboard[]
+    refreshTokens RefreshTokens[]
 
     @@map("user")
+}
+
+model RefreshTokens {
+    id         Int     @id @default(autoincrement())
+    jti        String  @unique
+    user       User    @relation(fields: [userId], references: [id])
+    userId     Int     @unique
+    deviceInfo String?
+    expiresAt  Int
+    issuedAt   Int
+    ipAddress  String?
+    revoked    Boolean @default(false)
+
+    @@map("refresh_tokens")
 }
 
 model Whiteboard {
