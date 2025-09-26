@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "composite": true, // needed for project references
+        "declaration": true, // generate .d.ts files
+        "declarationMap": true, // useful for debugging
+        "emitDeclarationOnly": true, // only emit types, no JS
+        "outDir": "./dist",
+        "rootDir": "./",
+        "skipLibCheck": true,
+        "strict": true
+    },
+    "include": [
+        "src"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}
