@@ -3,12 +3,13 @@ import express, { Request, Response } from "express"
 import { PrismaClient } from "../generated/prisma"
 import * as argon2 from "argon2";
 import { error } from "console";
-import jwt, { Jwt } from "jsonwebtoken";
+import jwt, { Jwt, JwtPayload } from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import { connect } from "http2";
+import { UserSchema, type User, SignupRequestSchema, type Signup, JwtPayloadSchema, type JwtPayloadType } from "@pnpmworkspace/types";
 const prisma = new PrismaClient();
-
-
+const secretKey = process.env.ACCESS_TOKEN_SECRET || "default key";
+/*
 interface SignupRequest {
     email: string,
     password: string,
@@ -31,36 +32,33 @@ interface JwtPayload {
     issuedAt: number,
     expiresIn: number,
 }
+*/
 
 
-
-const SECRET_KEY = "jhiusdhfuih79y3hbsddifasb7923rindnf79us792345uihdfs";
+//const SECRET_KEY = "jhiusdhfuih79y3hbsddifasb7923rindnf79us792345uihdfs";
 
 const generateAccessToken = (userId: number, name: string): string => {
-
     const token: string = jwt.sign({
         user_id: userId,
         name: name,
-        iat: Date.now()
-    }, SECRET_KEY, {
+        iat: Date.now(),
+    }, secretKey, {
         expiresIn: 60 * 15,
         jwtid: uuidv4(),
     })
+
     return token;
 }
 
-const generateRefreshToken = (userId: number, jwtPayload: JwtPayload, req: Request): string => {
+const generateRefreshToken = (userId: number, jwtid: string, userAgent: string): string => {
 
-    const userAgent = req.headers["user-agent"];
-    console.log(userAgent);
     const token: string = jwt.sign({
         user_id: userId,
-        ip_address: req.ip,
         device_info: userAgent,
         iat: Date.now()
-    }, SECRET_KEY, {
+    }, secretKey, {
         expiresIn: '30d',
-        jwtid: jwtPayload.jwtId,
+        jwtid: jwtid,
     })
     return token;
 
@@ -69,13 +67,13 @@ const signupUser = async (req: Request, res: Response) => {
 
     try {
         console.log(req.body);
-        const { email, password, name }: SignupRequest = req.body;
+        const { email, password, name }: Signup = req.body;
         const doesEmailExists = await prisma.user.findUnique({
             where: {
                 email: email
             }
         })
-        if (!doesEmailExists) {
+        if (doesEmailExists) {
             throw error("user already exists");
         }
         const hashPassword = await argon2.hash(password);
@@ -103,9 +101,9 @@ const signupUser = async (req: Request, res: Response) => {
     }
 }
 
-const loginUser = async (req: Request, res: Response, jwtPayload: JwtPayload) => {
+const loginUser = async (req: Request, res: Response) => {
     try {
-        const { email, name, inputPassword } = req.body;
+        const { email, name, password }: Signup = req.body;
         const user = await prisma.user.findUnique({
             where: {
                 email: email
@@ -115,21 +113,25 @@ const loginUser = async (req: Request, res: Response, jwtPayload: JwtPayload) =>
             throw error("invalid credentials");
         }
 
-        if (!await argon2.verify(user.password, inputPassword)) {
+        if (!await argon2.verify(user.password, password)) {
             throw error("Invalid password");
         }
 
+        const userAgent = req.headers["user-agent"] || "default details";
+        console.log(userAgent);
         //token generation
         const accessToken: string = generateAccessToken(user.id, user.name);
-        const refreshToken: string = generateRefreshToken(user.id, jwtPayload, req);
+        const jwtid: string = uuidv4();
+        const refreshToken: string = generateRefreshToken(user.id, jwtid, userAgent);
+
 
         //token save and res
         const saveRefreshDb = await prisma.refreshTokens.create({
             data: {
-                jti: jwtPayload.jwtId,
-                expiresAt: jwtPayload.expiresIn,
-                issuedAt: jwtPayload.iat,
-                ipAddress: jwtPayload.ipAddress,
+                jti: jwtid,
+                expiresAt: Math.floor((Date.now() / 1000) + (60 * 60 * 24 * 30)),
+                issuedAt: Date.now(),
+                deviceInfo: userAgent,
                 user: {
                     connect: {
                         id: user.id
@@ -139,16 +141,17 @@ const loginUser = async (req: Request, res: Response, jwtPayload: JwtPayload) =>
         })
 
         if (saveRefreshDb) {
+            res.cookie("refresh_token", refreshToken, {
+                sameSite: "lax",
+                httpOnly: true,
+                secure: false
+            })
+
             res.status(201).json({
                 message: "success",
                 user: user.name,
                 email: user.email,
                 token: accessToken,
-            })
-            res.cookie("refresh_token", refreshToken, {
-                sameSite: "lax",
-                httpOnly: true,
-                secure: false
             })
         }
 
