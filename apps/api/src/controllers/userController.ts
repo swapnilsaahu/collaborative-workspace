@@ -1,5 +1,4 @@
 import express, { Request, Response } from "express"
-//import logger from "@pnpmworkspace/logger"
 import { PrismaClient } from "../generated/prisma"
 import * as argon2 from "argon2";
 import { error } from "console";
@@ -9,35 +8,10 @@ import { connect } from "http2";
 import { UserSchema, type User, SignupRequestSchema, type Signup, JwtPayloadSchema, type JwtPayloadType } from "@pnpmworkspace/types";
 const prisma = new PrismaClient();
 const secretKey = process.env.ACCESS_TOKEN_SECRET || "default key";
-/*
-interface SignupRequest {
-    email: string,
-    password: string,
-    name: string
-}
-
-interface User {
-    email: string,
-    password: string,
-    name: string
-}
-
-interface JwtPayload {
-    userId: string,
-    name: string,
-    jwtId: string,
-    iat: number,
-    ipAddress: string,
-    deviceInfo: string,
-    issuedAt: number,
-    expiresIn: number,
-}
-*/
 
 
-//const SECRET_KEY = "jhiusdhfuih79y3hbsddifasb7923rindnf79us792345uihdfs";
 
-const generateAccessToken = (userId: number, name: string): string => {
+const generateAccessToken = (userId: string, name: string): string => {
     const token: string = jwt.sign({
         user_id: userId,
         name: name,
@@ -50,7 +24,7 @@ const generateAccessToken = (userId: number, name: string): string => {
     return token;
 }
 
-const generateRefreshToken = (userId: number, jwtid: string, userAgent: string): string => {
+const generateRefreshToken = (userId: string, jwtid: string, userAgent: string): string => {
 
     const token: string = jwt.sign({
         user_id: userId,
@@ -162,4 +136,4 @@ const loginUser = async (req: Request, res: Response) => {
 }
 
 
-export { signupUser, loginUser };
+export { signupUser, loginUser, prisma };

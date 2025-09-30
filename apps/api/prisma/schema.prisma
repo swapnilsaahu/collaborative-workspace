@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
     provider = "prisma-client-js"
     output   = "../src/generated/prisma"
@@ -15,40 +12,52 @@ datasource db {
 }
 
 model User {
-    id            Int             @id @default(autoincrement())
-    email         String          @unique
+    id            String           @id @default(uuid())
+    email         String           @unique
     name          String
     password      String
-    createdAt     DateTime        @default(now()) @map("created_at")
-    updatedAt     DateTime        @updatedAt @map("updated_at")
-    whiteboards   Whiteboard[]
+    createdAt     DateTime         @default(now()) @map("created_at")
+    updatedAt     DateTime         @updatedAt @map("updated_at")
+    whitboards    WhiteboardUser[]
     refreshTokens RefreshTokens[]
 
     @@map("user")
 }
 
 model RefreshTokens {
-    id         Int     @id @default(autoincrement())
-    jti        String  @unique
+    jti        String  @id
+    userId     String
     user       User    @relation(fields: [userId], references: [id])
-    userId     Int     @unique
-    deviceInfo String?
-    expiresAt  BigInt
-    issuedAt   BigInt
-    ipAddress  String?
+    deviceInfo String? @map("device_info")
+    expiresAt  BigInt  @map("expires_at")
+    issuedAt   BigInt  @map("issued_at")
+    ipAddress  String? @map("ip_address")
     revoked    Boolean @default(false)
 
     @@map("refresh_tokens")
 }
 
 model Whiteboard {
-    id          Int      @id @default(autoincrement())
-    name        String
-    coordinates Json
-    users       User[]
-    createdAt   DateTime @default(now()) @map("created_at")
-    updatedAt   DateTime @updatedAt @map("updated_at")
-    url         String   @unique
+    id             String           @id @default(uuid())
+    name           String
+    coordinates    Json?
+    createdAt      DateTime         @default(now()) @map("created_at")
+    updatedAt      DateTime         @updatedAt @map("updated_at")
+    whiteboardCode String           @map("whiteboard_code")
+    users          WhiteboardUser[]
 
     @@map("whiteboard")
+}
+
+model WhiteboardUser {
+    userId       String   @map("user_id")
+    whiteboardId String   @map("whiteboard_id")
+    role         String   @default("editor")
+    joinedAt     DateTime @default(now()) @map("joined_at")
+
+    user       User       @relation(fields: [userId], references: [id])
+    whiteboard Whiteboard @relation(fields: [whiteboardId], references: [id])
+
+    @@id([userId, whiteboardId])
+    @@map("whiteboard_user")
 }
