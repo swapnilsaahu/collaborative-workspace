@@ -1,18 +1,12 @@
+import { Route, Routes } from 'react-router-dom'
 import './App.css'
-import Canvas from './components/CanvasComponent';
+import WhiteBoardPage from './pages/WhiteboardPage'
 
 function App() {
-    const drawCircle = (ctx: CanvasRenderingContext2D) => {
-        ctx.beginPath();
-        ctx.arc(200, 200, 50, 0, 2 * Math.PI);
-        ctx.fillStyle = "blue";
-        ctx.fill();
-    }
-
 
     return (
         <>
-            <Canvas draw={drawCircle} />
+            <WhiteBoardPage />
         </>
     )
 }
