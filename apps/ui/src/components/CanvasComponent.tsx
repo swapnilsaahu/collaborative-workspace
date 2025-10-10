@@ -1,39 +1,59 @@
 import { useEffect, useRef } from "react";
 
-type Draw = (canvas: HTMLCanvasElement, context: CanvasRenderingContext2D) => void;
+type Draw = (canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, tool: string) => void;
 
 interface CanvasProps {
     draw?: Draw;
+    tool: string
 }
 //React components cant noramlly have fxns as args, it expects single object inside which there can be as many fxn as we want,
 //we need to destructure it and then use draw
 //
-export const brushFunction = (canvas: HTMLCanvasElement, context: CanvasRenderingContext2D) => {
+export const brushFunction = (canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, whichTool: string) => {
     let mouse = {
         x: 0,
         y: 0,
     }
     let isDrawing = false;
 
-    canvas.addEventListener('mousedown', (event) => {
+    //create fxn for each mouse event this is imporatant because it will help in cleaning the event listener
+
+    const onMouseDown = (event: MouseEvent) => {
+        if (whichTool != "brush") return;
         isDrawing = true;
         mouse.x = event.offsetX;
         mouse.y = event.offsetY;
-    })
+    }
 
-    canvas.addEventListener('mousemove', (event) => {
+    const onMouseMove = (event: MouseEvent) => {
         if (!isDrawing) return;
+        if (whichTool != "brush") return;
         context.beginPath();
         context.moveTo(mouse.x, mouse.y);
         context.lineTo(event.offsetX, event.offsetY);
         context.stroke();
         mouse.x = event.offsetX;
         mouse.y = event.offsetY;
-    })
+    }
 
-    canvas.addEventListener('mouseup', () => (isDrawing = false))
+    const onMouseUp = () => (isDrawing = false)
+
+    //using named fxns such as onMouseDown, onMouseUp.. because if use anon fxn then we will not reference to the event listener which is imporatant while removing the event listener
+    //event listener needs to be removed manually each event listener or else it will still listen to the events 
+    //below defined all the events
+    canvas.addEventListener('mousedown', onMouseDown)
+    canvas.addEventListener('mousemove', onMouseMove)
+    canvas.addEventListener('mouseup', onMouseUp)
+
+    return () => {
+        //removed all the event listener so if user changes tools it no longer listens for brush
+        canvas.removeEventListener('mousedown', onMouseDown)
+        canvas.removeEventListener('mousemove', onMouseMove)
+        canvas.removeEventListener('mouseup', onMouseUp)
+    }
 }
-const Canvas = ({ draw }: CanvasProps) => {
+
+const Canvas = ({ draw, tool }: CanvasProps) => {
     const ref = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -42,11 +62,11 @@ const Canvas = ({ draw }: CanvasProps) => {
         if (!canvas) return; //check if canvas is reffered or not
         const context = canvas.getContext('2d');
         if (!context) return; //check if ctx is null
-        draw(canvas, context);
+        const cleanup = draw(canvas, context, tool);
+        return cleanup;
 
 
-
-    }, [draw]); //draws when it gets mounted and then every time a draw fxn is triggered
+    }, [draw, tool]); //draws when it gets mounted and then every time a draw fxn is triggered
 
     return <canvas ref={ref} width={window.innerWidth} height={window.innerHeight} />;
 }
