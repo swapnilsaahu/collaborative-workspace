@@ -1,20 +1,15 @@
 import { useState } from "react";
 import Canvas, { brushFunction } from "../components/CanvasComponent";
+import { useWhiteboard } from "../hooks/useWhiteboard";
+//renders canvas component, tools section, navbar, globalcontext for current whiteboard(room), active tool
+//update ydoc
+const WhiteBoardPage = (roomId: string) => {
+
+    const { ydoc, websocketObj } = useWhiteboard(roomId);
 
 
-const WhiteBoardPage = () => {
-
-    const [whichTool, setTool] = useState("");
-    const fxnMapping: Record<string, (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, whichTool: string) => void> = {
-        "brush": brushFunction
-    }
     return (
         <>
-            <button onClick={() => setTool("brush")}> brush</button >
-            <button onClick={() => setTool("")}>mouse</button>
-            <p>
-                {whichTool}
-            </p>
             <Canvas draw={fxnMapping[whichTool]} tool={whichTool} />
         </>
     )

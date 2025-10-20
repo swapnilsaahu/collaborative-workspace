@@ -13,7 +13,6 @@ export interface CanvasProps {
 
 const Canvas = ({ draw, tool }: CanvasProps) => {
     const ref = useRef<HTMLCanvasElement>(null);
-    // useWhiteboard()
     return <canvas ref={ref} width={window.innerWidth} height={window.innerHeight} />;
 }
 
