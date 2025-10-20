@@ -1,27 +1,22 @@
 import * as Y from "yjs";
-
-let current: { ydoc: Y.Doc | null, websocketObj: WebSocket | null } = {
-    ydoc: null,
-    websocketObj: null
-}
+import { useWhiteboardContext } from "../context/WhiteboardContext";
 
 export const initWhiteboard = (roomId: string) => {
 
+    let { setWebsocketObj, setYdoc } = useWhiteboardContext();
     //cleanup existing ydoc instance
     //instantiate new ydoc 
     //fetch ydoc from backend(api call)
     //return ydoc and websocket connection obj
     destroyYdoc();
 
-    const ydoc = new Y.Doc();
-    const websocketObj =
-        current.ydoc = ydoc;
-    current.websocketObj = websocketObj;
-    return { ydoc, websocketObj };
+    setYdoc(new Y.Doc());
+    // setWebsocketObj();
 }
 
 export const destroyYdoc = () => {
-    if (current.websocketObj) current.websocketObj.destroy();
-    if (current.ydoc) current.ydoc.destroy();
+    const { ydoc, websocketObj } = useWhiteboardContext();
+    //if (websocketObj) websocketObj.destroy();
+    if (ydoc) ydoc.destroy();
     return { ydoc: null, websocketObj: null }
 }
