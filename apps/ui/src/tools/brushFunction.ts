@@ -1,5 +1,7 @@
-
-export const brushFunction = (canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, whichTool: string) => {
+import { useWhiteboardContext } from "../context/WhiteboardContext";
+export const brushFunction = () => {
+    const { canvasContext } = useWhiteboardContext();
+    const { activeTool } = useWhiteboardContext();
     let mouse = {
         x: 0,
         y: 0,
@@ -9,7 +11,7 @@ export const brushFunction = (canvas: HTMLCanvasElement, context: CanvasRenderin
     //create fxn for each mouse event this is imporatant because it will help in cleaning the event listener
 
     const onMouseDown = (event: MouseEvent) => {
-        if (whichTool != "brush") return;
+        if (activeTool != "brush") return;
         isDrawing = true;
         mouse.x = event.offsetX;
         mouse.y = event.offsetY;
@@ -17,11 +19,12 @@ export const brushFunction = (canvas: HTMLCanvasElement, context: CanvasRenderin
 
     const onMouseMove = (event: MouseEvent) => {
         if (!isDrawing) return;
-        if (whichTool != "brush") return;
-        context.beginPath();
-        context.moveTo(mouse.x, mouse.y);
-        context.lineTo(event.offsetX, event.offsetY);
-        context.stroke();
+        if (activeTool != "brush") return;
+        if (!canvasContext) return;
+        canvasContext.beginPath();
+        canvasContext.moveTo(mouse.x, mouse.y);
+        canvasContext.lineTo(event.offsetX, event.offsetY);
+        canvasContext.stroke();
         mouse.x = event.offsetX;
         mouse.y = event.offsetY;
         console.log(event.offsetX, event.offsetY);

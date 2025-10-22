@@ -1,15 +1,18 @@
-import { createContext, useContext, useState, type ReactNode, } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode, } from "react";
+import { useDrawTool } from "../hooks/useDrawTool";
 import * as Y from "yjs";
 interface WhiteboardContextType {
     ydoc: Y.Doc | null,
     websocketObj: WebSocket | null,
     roomId: string | null;
     activeTool: string | null,
+    htmlCanvasRef: HTMLCanvasElement | null;
     canvasContext: CanvasRenderingContext2D | null,
     setYdoc: (doc: Y.Doc | null) => void;
     setWebsocketObj: (ws: WebSocket | null) => void;
     setRoomId: (id: string | null) => void;
     setActiveTool: (tool: string | null) => void;
+    setHtmlCanvasRef: (htmlRef: HTMLCanvasElement | null) => void;
     setCanvasContext: (ctx: CanvasRenderingContext2D | null) => void;
 }
 
@@ -24,18 +27,35 @@ export const WhiteboardProvider = ({ children }: { children: ReactNode }) => {
     const [roomId, setRoomId] = useState<string | null>(null);
     const [activeTool, setActiveTool] = useState<string | null>(null);
     const [canvasContext, setCanvasContext] = useState<CanvasRenderingContext2D | null>(null)
-    const []
+    const [htmlCanvasRef, setHtmlCanvasRef] = useState<HTMLCanvasElement | null>(null);
+    const prevTool = useRef<{ cleanup?: () => void } | null>(null);
+    const toolsRegistry: Record<string, any> = {
+        brush: useDrawTool,
+    };
+    useEffect(() => {
+        if (!htmlCanvasRef) return;
 
+        //checks if old tool exists if yes then if cleanup fxn is there if yes then execute the fxn, optional chaining doesnt throw error
+        prevTool.current?.cleanup?.();
+        //call setup fxn in usedrawtool for ex the setup fxn returns a funnction which is stored in cleanup
+        const cleanup = activeTool ? toolsRegistry[activeTool].setup() : undefined;
+        //store the cleanup fxn in prevcurrent so that whenever the tool changes it can get executed first
+        prevTool.current = { cleanup };
+
+        return () => prevTool.current?.cleanup?.(); //cleanups on unmount or whiteboar change
+    }, [activeTool, canvasContext])
     const value = {
         ydoc,
         websocketObj,
         roomId,
         activeTool,
+        htmlCanvasRef,
         canvasContext,
         setYdoc,
         setWebsocketObj,
         setRoomId,
         setActiveTool,
+        setHtmlCanvasRef,
         setCanvasContext
     }
 

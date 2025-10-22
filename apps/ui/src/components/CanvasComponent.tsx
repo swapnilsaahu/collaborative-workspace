@@ -8,11 +8,14 @@ import { useWhiteboardContext } from "../context/WhiteboardContext";
 const Canvas = () => {
     const ref = useRef<HTMLCanvasElement | null>(null);
     const { setCanvasContext } = useWhiteboardContext();
-
+    const { setHtmlCanvasRef } = useWhiteboardContext();
     useEffect(() => {
         if (!ref.current) return;
+        setHtmlCanvasRef(ref.current);
         const ctx = ref.current.getContext("2d");
         if (ctx) setCanvasContext(ctx);
+
+
     }, [])
     return <canvas ref={ref} width={window.innerWidth} height={window.innerHeight} />;
 }
