@@ -1,15 +1,19 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode, } from "react";
 import { useDrawTool } from "../hooks/useDrawTool";
 import * as Y from "yjs";
+import type { drawType } from "../yjs/YjsDocManager";
+import type { WebsocketProvider } from "y-websocket";
 interface WhiteboardContextType {
     ydoc: Y.Doc | null,
-    websocketObj: WebSocket | null,
+    yarray: Y.Array<drawType> | null,
+    websocketObj: WebsocketProvider | null,
     roomId: string | null;
     activeTool: string | null,
     htmlCanvasRef: HTMLCanvasElement | null;
     canvasContext: CanvasRenderingContext2D | null,
     setYdoc: (doc: Y.Doc | null) => void;
-    setWebsocketObj: (ws: WebSocket | null) => void;
+    setYarray: (yarray: Y.Array<drawType> | null) => void;
+    setWebsocketObj: (ws: WebsocketProvider | null) => void;
     setRoomId: (id: string | null) => void;
     setActiveTool: (tool: string | null) => void;
     setHtmlCanvasRef: (htmlRef: HTMLCanvasElement | null) => void;
@@ -23,7 +27,8 @@ const WhiteboardContext = createContext<WhiteboardContextType | undefined>(undef
 
 export const WhiteboardProvider = ({ children }: { children: ReactNode }) => {
     const [ydoc, setYdoc] = useState<Y.Doc | null>(null);
-    const [websocketObj, setWebsocketObj] = useState<WebSocket | null>(null);
+    const [yarray, setYarray] = useState<Y.Array<drawType> | null>(null)
+    const [websocketObj, setWebsocketObj] = useState<WebsocketProvider | null>(null);
     const [roomId, setRoomId] = useState<string | null>(null);
     const [activeTool, setActiveTool] = useState<string | null>(null);
     const [canvasContext, setCanvasContext] = useState<CanvasRenderingContext2D | null>(null)
@@ -46,12 +51,14 @@ export const WhiteboardProvider = ({ children }: { children: ReactNode }) => {
     }, [activeTool, canvasContext])
     const value = {
         ydoc,
+        yarray,
         websocketObj,
         roomId,
         activeTool,
         htmlCanvasRef,
         canvasContext,
         setYdoc,
+        setYarray,
         setWebsocketObj,
         setRoomId,
         setActiveTool,
