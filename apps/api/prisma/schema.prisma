@@ -40,10 +40,10 @@ model RefreshTokens {
 model Whiteboard {
     id             String           @id @default(uuid())
     name           String
-    coordinates    Json?
+    ydocEncoded    Bytes?           @map("ydoc_encoded")
     createdAt      DateTime         @default(now()) @map("created_at")
     updatedAt      DateTime         @updatedAt @map("updated_at")
-    whiteboardCode String           @map("whiteboard_code")
+    whiteboardCode String?          @unique @map("whiteboard_code")
     users          WhiteboardUser[]
 
     @@map("whiteboard")

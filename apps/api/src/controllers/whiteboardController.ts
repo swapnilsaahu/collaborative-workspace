@@ -34,10 +34,6 @@ const createWhiteboard = async (req: Request, res: Response) => {
     } catch (error) {
         console.error("error while creating a whiteboard", error);
     }
-
-
-
-
 }
 
 const getAllWhiteboard = async (req: Request, res: Response) => {
@@ -68,4 +64,47 @@ const getAllWhiteboard = async (req: Request, res: Response) => {
         res.status(404)
         console.error("error while getting whiteboards")
     }
+}
+
+export const fetchYdocFromDB = async (roomId: string) => {
+    try {
+        if (!roomId) {
+            return;
+        }
+        const encodedYdoc = await prisma.whiteboard.findUnique({
+            where: {
+                whiteboardCode: roomId
+            },
+            select: {
+                ydocEncoded: true
+            }
+        })
+        if (encodedYdoc) {
+            return encodedYdoc;
+        }
+    } catch (error) {
+        console.error("error while fetching ydoc");
+    }
+}
+
+export const saveYdocToDB = async (roomId: string, state: Uint8Array) => {
+    try {
+        if (!roomId) return;
+        const isSaved = await prisma.whiteboard.update({
+            where: {
+                whiteboardCode: roomId
+            },
+            data: {
+                ydocEncoded: state
+            }
+        })
+
+        if (isSaved) {
+            return true;
+        }
+
+    } catch (error) {
+        console.error("error while saving the doc")
+    }
+
 }
