@@ -7,8 +7,7 @@ import { useWhiteboardContext } from "../context/WhiteboardContext";
 
 const Canvas = () => {
     const ref = useRef<HTMLCanvasElement | null>(null);
-    const { setCanvasContext } = useWhiteboardContext();
-    const { setHtmlCanvasRef } = useWhiteboardContext();
+    const { setCanvasContext, setHtmlCanvasRef } = useWhiteboardContext();
     useEffect(() => {
         if (!ref.current) return;
         setHtmlCanvasRef(ref.current);

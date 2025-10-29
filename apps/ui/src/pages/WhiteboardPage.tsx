@@ -1,17 +1,15 @@
-import { useState } from "react";
-import Canvas, { brushFunction } from "../components/CanvasComponent";
+import Canvas from "../components/CanvasComponent";
 import { WhiteboardProvider } from "../context/WhiteboardContext";
 import ToolBarComponent from "../components/ToolBarComponent";
+import { ToolsBarManagement } from "../components/ToolBarManagement";
 //renders canvas component, tools section, navbar, globalcontext for current whiteboard(room), active tool
 //update ydoc
-const WhiteBoardPage = (roomId: string) => {
-
-
-
+const WhiteBoardPage = () => {
     return (
         <>
             <WhiteboardProvider >
                 <Canvas />
+                <ToolsBarManagement />
                 <ToolBarComponent />
             </WhiteboardProvider>
         </>
