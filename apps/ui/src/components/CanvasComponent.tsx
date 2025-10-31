@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback } from "react";
 import { useWhiteboardContext } from "../context/WhiteboardContext";
 //type Draw = (canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, tool: string) => void;
 //React components cant noramlly have fxns as args, it expects single object inside which there can be as many fxn as we want,
@@ -6,17 +6,21 @@ import { useWhiteboardContext } from "../context/WhiteboardContext";
 //
 
 const Canvas = () => {
-    const ref = useRef<HTMLCanvasElement | null>(null);
-    const { setCanvasContext, setHtmlCanvasRef } = useWhiteboardContext();
-    useEffect(() => {
-        if (!ref.current) return;
-        setHtmlCanvasRef(ref.current);
-        const ctx = ref.current.getContext("2d");
-        if (ctx) setCanvasContext(ctx);
-
-
+    const { canvasContext, htmlCanvasRef } = useWhiteboardContext();
+    const setCanvasRef = useCallback((canvas: HTMLCanvasElement | null) => {
+        if (canvas) {
+            htmlCanvasRef.current = canvas;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+                canvasContext.current = ctx;
+            }
+            else {
+                htmlCanvasRef.current = null;
+                canvasContext.current = null;
+            }
+        }
     }, [])
-    return <canvas ref={ref} width={window.innerWidth} height={window.innerHeight} />;
+    return <canvas ref={setCanvasRef} width={window.innerWidth} height={window.innerHeight} />;
 }
 
 export default Canvas;

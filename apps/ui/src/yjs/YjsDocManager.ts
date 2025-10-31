@@ -1,7 +1,7 @@
 import * as Y from "yjs";
 import { WebsocketProvider } from "y-websocket";
 import { useWhiteboardContext } from "../context/WhiteboardContext";
-import { useCallback } from "react";
+import { useEffect } from "react";
 
 export interface drawType {
     id: string,
@@ -16,30 +16,32 @@ export interface drawType {
 }
 //react hooks cant be in normal ts file hence converted to a custom hook then using the export fxns to initalize the room
 export const useYjsManager = () => {
-
-    const { setWebsocketObj, setYdoc, setYarray } = useWhiteboardContext();
-    const { ydoc, websocketObj } = useWhiteboardContext();
-    const initWhiteboard = useCallback((roomId: string) => {
+    const { ydoc, websocketObj, yarray, roomId } = useWhiteboardContext();
+    useEffect(() => {
         //cleanup existing ydoc instance
         //instantiate new ydoc 
         //fetch ydoc from backend(api call)
         //return ydoc and websocket connection obj
-        destroyYdoc();
+        console.log('useYjsManager effect trying to run. roomId:', roomId);
+        if (!roomId) {
+            return;
+        }
+        console.log(`Yjs: Valid roomId found. Connecting to: ${roomId}`);
         const doc = new Y.Doc();
-        setYdoc(doc);
-        const yarray = doc.getArray<drawType>('listOfShapes');
-        setYarray(yarray);
-
+        ydoc.current = doc;
+        const arr: Y.Array<any> = doc.getArray('listOfShapes');
+        yarray.current = arr;
         const wsProvider = new WebsocketProvider('ws://localhost:3000', roomId, doc);
-        setWebsocketObj(wsProvider);
-    }, [setWebsocketObj])
+        websocketObj.current = wsProvider;
 
-    const destroyYdoc = useCallback(() => {
-        if (ydoc) ydoc.destroy();
-        if (websocketObj) websocketObj.destroy();
-        setYdoc(null);
-        setWebsocketObj(null);
-    }, [])
+        return () => {
 
-    return { initWhiteboard, destroyYdoc }
+            if (websocketObj.current) {
+                websocketObj.current.disconnect();
+            }
+            if (ydoc.current) {
+                ydoc.current.destroy();
+            }
+        }
+    }, [roomId])
 }

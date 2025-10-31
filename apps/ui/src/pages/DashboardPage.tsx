@@ -1,20 +1,17 @@
 import { useState, type ChangeEvent } from "react";
-import { useWhiteboardContext } from "../context/WhiteboardContext";
+import { useWhiteboardContext, WhiteboardProvider } from "../context/WhiteboardContext";
 import axios from "axios";
-import { useWhiteboard } from "../hooks/useWhiteboard";
 import { useNavigate } from 'react-router-dom';
+import { Whiteboard } from "../components/Whiteboard";
 const DashboardPage = () => {
     const createWhiteboardAPI = 'http://localhost:3000/api/v1/whiteboard/createwhiteboard/'
     const [roomname, setRoomname] = useState("");
-    const { setRoomId, roomId, websocketObj } = useWhiteboardContext();
     const [error, setError] = useState<Error | null>(null);
     const [isLoading, setLoading] = useState(false);
     const navigate = useNavigate();
     const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
         setRoomname(event.target.value);
     }
-
-    useWhiteboard(roomId!); //call initwhiteboard inside the useWhiteboard only when the roomId is there
 
     const fetchData = async () => {
         setLoading(true);
@@ -27,13 +24,8 @@ const DashboardPage = () => {
             if (!res.data?.whiteboardCode) {
                 throw new Error("room not found")
             }
-            const newRoomId = res.data.whiteboardCode;
-            setRoomId(newRoomId);
-            console.log(roomId);
-            if (websocketObj) {
-                //only navigate when a websocket conn is established
-                navigate('/whiteboardpage')
-            }
+            const roomId = res.data.whiteboardCode;
+            navigate(`/whiteboardpage/${roomId}`)
         } catch (error: unknown) {
             if (error instanceof Error) {
                 console.error(error.message)

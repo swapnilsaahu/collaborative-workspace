@@ -1,39 +1,29 @@
-import { createContext, useContext, useState, type ReactNode, } from "react";
+import { createContext, useContext, useMemo, useRef, useState, type ReactNode, } from "react";
 import * as Y from "yjs";
-import type { drawType } from "../yjs/YjsDocManager";
 import type { WebsocketProvider } from "y-websocket";
 interface WhiteboardContextType {
-    ydoc: Y.Doc | null,
-    yarray: Y.Array<drawType> | null,
-    websocketObj: WebsocketProvider | null,
+    ydoc: React.RefObject<Y.Doc | null>;
+    yarray: React.RefObject<Y.Array<any> | null>;
+    websocketObj: React.RefObject<WebsocketProvider | null>;
     roomId: string | null;
-    activeTool: string | null,
-    htmlCanvasRef: HTMLCanvasElement | null;
-    canvasContext: CanvasRenderingContext2D | null,
-    setYdoc: (doc: Y.Doc | null) => void;
-    setYarray: (yarray: Y.Array<drawType> | null) => void;
-    setWebsocketObj: (ws: WebsocketProvider | null) => void;
-    setRoomId: (id: string | null) => void;
+    activeTool: string | null;
+    htmlCanvasRef: React.RefObject<HTMLCanvasElement | null>;
+    canvasContext: React.RefObject<CanvasRenderingContext2D | null>;
     setActiveTool: (tool: string | null) => void;
-    setHtmlCanvasRef: (htmlRef: HTMLCanvasElement | null) => void;
-    setCanvasContext: (ctx: CanvasRenderingContext2D | null) => void;
 }
-
 //contex which basically defines global context so that any of the children wrapped around it will have access to the values we are passing to the provider
-const WhiteboardContext = createContext<WhiteboardContextType | undefined>(undefined);
+const WhiteboardContext = createContext<WhiteboardContextType | null>(null);
 
-
-
-export const WhiteboardProvider = ({ children }: { children: ReactNode }) => {
-    const [ydoc, setYdoc] = useState<Y.Doc | null>(null);
-    const [yarray, setYarray] = useState<Y.Array<drawType> | null>(null)
-    const [websocketObj, setWebsocketObj] = useState<WebsocketProvider | null>(null);
-    const [roomId, setRoomId] = useState<string | null>(null);
+export const WhiteboardProvider = ({ children, roomId }: { children: ReactNode, roomId: string }) => {
+    //use useref when you only want data to update which avoids re renders and use usestate when you need ui update because it needs re render
+    const ydoc = useRef<Y.Doc | null>(null);
+    const yarray = useRef<Y.Array<any> | null>(null)
+    const websocketObj = useRef<WebsocketProvider | null>(null);
     const [activeTool, setActiveTool] = useState<string | null>(null);
-    const [canvasContext, setCanvasContext] = useState<CanvasRenderingContext2D | null>(null)
-    const [htmlCanvasRef, setHtmlCanvasRef] = useState<HTMLCanvasElement | null>(null);
-
-    const value = {
+    const canvasContext = useRef<CanvasRenderingContext2D | null>(null)
+    const htmlCanvasRef = useRef<HTMLCanvasElement | null>(null);
+    //using usememo to avoid re renders when any variable changes only re render when activeTool or roomId changes
+    const value = useMemo(() => ({
         ydoc,
         yarray,
         websocketObj,
@@ -41,14 +31,8 @@ export const WhiteboardProvider = ({ children }: { children: ReactNode }) => {
         activeTool,
         htmlCanvasRef,
         canvasContext,
-        setYdoc,
-        setYarray,
-        setWebsocketObj,
-        setRoomId,
         setActiveTool,
-        setHtmlCanvasRef,
-        setCanvasContext
-    }
+    }), [roomId, activeTool])
 
     return (
         <WhiteboardContext.Provider value={value} >

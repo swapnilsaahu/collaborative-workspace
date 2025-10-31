@@ -5,7 +5,6 @@ import App from './App.tsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import DashboardPage from './pages/DashboardPage.tsx'
 import WhiteBoardPage from './pages/WhiteboardPage.tsx'
-import { WhiteboardProvider } from './context/WhiteboardContext.tsx'
 
 const router = createBrowserRouter([
     {
@@ -16,13 +15,11 @@ const router = createBrowserRouter([
         path: '/dashboard',
         element:
             (
-                <WhiteboardProvider>
-                    <DashboardPage />
-                </WhiteboardProvider>
+                <DashboardPage />
             )
     },
     {
-        path: '/whiteboardpage',
+        path: '/whiteboardpage/:roomId',
         element: (
             < WhiteBoardPage />
         )
