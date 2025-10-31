@@ -4,9 +4,11 @@ import { prisma } from "./userController";
 import crypto from "node:crypto";
 
 
-const createWhiteboard = async (req: Request, res: Response) => {
+export const createWhiteboard = async (req: Request, res: Response) => {
     try {
-        const { userid, whiteboardName } = req.body;
+        // const { userid, roomname } = req.body;
+        const { roomname } = req.body;
+        /*
         const user = await prisma.user.findUnique({
             where: {
                 id: userid
@@ -14,16 +16,17 @@ const createWhiteboard = async (req: Request, res: Response) => {
         })
         if (!user) {
             throw new Error("user doesnt exists");
-        }
+        }*/
         const whiteboardCode = crypto.randomUUID();
+
+
         const whiteboard = await prisma.whiteboard.create({
             data: {
-                name: whiteboardName,
+                name: roomname,
                 whiteboardCode: whiteboardCode,
 
             }
         })
-
 
         res.status(201).json({
             status: "success",
@@ -36,7 +39,7 @@ const createWhiteboard = async (req: Request, res: Response) => {
     }
 }
 
-const getAllWhiteboard = async (req: Request, res: Response) => {
+export const getAllWhiteboard = async (req: Request, res: Response) => {
     try {
         const { userid } = req.body;
         const user = await prisma.user.findUnique({

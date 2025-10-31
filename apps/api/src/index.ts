@@ -6,19 +6,18 @@ import { WebSocketServer, Server, WebSocket } from "ws";
 import { setupWSConnection } from "../node_modules/y-websocket/bin/utils.js";
 import * as Y from "yjs";
 import { fetchYdocFromDB, saveYdocToDB } from './controllers/whiteboardController.ts';
+import userRouter from "./routes/userRoutes.ts"
+import whiteboardRouter from "./routes/whiteboardRoutes.ts"
+import cors from "cors"
 dotenv.config();
-
 const app: Application = express();
 const port = 3000;
-
 const httpServer = http.createServer(app);
 
+app.use(cors());
 app.use(express.json());
-
-import userRouter from "./routes/userRoutes.ts"
-
 app.use("/api/v1/users", userRouter);
-
+app.use("/api/v1/whiteboard", whiteboardRouter);
 app.get('/', (req: Request, res: Response) => {
     res.json({ message: 'hello from server' });
 })
@@ -41,7 +40,7 @@ const webSocketServer = () => {
 
     wss.on('connection', async (ws, req) => {
         ws.on('error', console.error);
-
+        console.log(`new connection in websocket ${ws}`)
         const roomId = req.url?.slice(1);
         if (!roomId) {
             ws.close();
